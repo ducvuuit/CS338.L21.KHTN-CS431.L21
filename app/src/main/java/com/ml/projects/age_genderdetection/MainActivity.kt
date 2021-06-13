@@ -64,15 +64,11 @@ class MainActivity : AppCompatActivity() {
     private val compatList = CompatibilityList()
     // Model names, as shown in the spinner.
     private val modelNames = arrayOf(
-        //"Age/Gender Detection Model ( Quantized ) ",
-        //"Age/Gender Detection Model ( Non-quantized )",
         "Age/Gender Detection Lite Model ( Quantized )",
         "Age/Gender Detection Lite Model ( Non-quantized )",
     )
     // Filepaths of the models ( in the assets folder ) corresponding to the models in `modelNames`.
     private val modelFilenames = arrayOf(
-        //arrayOf("model_age_q.tflite", "model_gender_q.tflite"),
-        //arrayOf("model_age_nonq.tflite", "model_gender_nonq.tflite"),
         arrayOf("model_lite_age_q.tflite", "model_lite_gender_q.tflite"),
         arrayOf("model_lite_age_nonq.tflite", "model_lite_gender_nonq.tflite"),
     )
@@ -128,7 +124,6 @@ class MainActivity : AppCompatActivity() {
         val useNNApiCheckBox : CheckBox = dialogView.findViewById(R.id.useNNApi_checkbox)
         val useGPUCheckBox : CheckBox = dialogView.findViewById(R.id.useGPU_checkbox)
         val initModelButton : Button = dialogView.findViewById(R.id.init_model_button)
-        //val closeButton : Button = dialogView.findViewById( R.id.close_button )
         val selectModelSpinner : Spinner = dialogView.findViewById(R.id.select_model_spinner)
 
         alertDialogBuilder.setView(dialogView)
@@ -151,12 +146,12 @@ class MainActivity : AppCompatActivity() {
         // Check for NNAPI and GPUDelegate compatibility.
         if ( Build.VERSION.SDK_INT < Build.VERSION_CODES.P ) {
             useNNApiCheckBox.isEnabled = false
-            useNNApiCheckBox.text = "NNAPI (Chỉ có sẵn trên các phiên bản từ Android 9 )."
+            useNNApiCheckBox.text = "Dùng NNAPI lỗi"
             useNNApi = false
         }
         if ( !compatList.isDelegateSupportedOnThisDevice ){
             useGPUCheckBox.isEnabled = false
-            useGPUCheckBox.text = "GPU ( GPU Không có sẵn trên thiết bị của bạn )."
+            useGPUCheckBox.text = "Không có GPU"
             useGpu = false
         }
 
@@ -166,10 +161,6 @@ class MainActivity : AppCompatActivity() {
         useGPUCheckBox.setOnCheckedChangeListener { buttonView, isChecked ->
             useGpu = isChecked
         }
-//        closeButton.setOnClickListener {
-//            dialog.dismiss()
-//            finish()
-//        }
         initModelButton.setOnClickListener {
             val options = Interpreter.Options().apply {
                 if ( useGpu ) {
@@ -200,7 +191,7 @@ class MainActivity : AppCompatActivity() {
                 interpreter = genderModelInterpreter
             }
             // Notify the user once the models have been initialized.
-            Toast.makeText( applicationContext , " Đã khởi tạo Model." , Toast.LENGTH_LONG ).show()
+            Toast.makeText( applicationContext , "Đã khởi tạo model xong!" , Toast.LENGTH_LONG ).show()
         }
     }
 
@@ -256,7 +247,7 @@ class MainActivity : AppCompatActivity() {
 
                             // Show the inference time to the user via `inferenceSpeedTextView`.
                             inferenceSpeedTextView.text = "Thời gian dự đoán tuổi : ${ageEstimationModel.inferenceTime} ms \n" +
-                                    "Thời gian suy luận giới tính : ${ageEstimationModel.inferenceTime} ms"
+                                    "Thời gian dự đoán giới tính : ${ageEstimationModel.inferenceTime} ms"
 
                             // Show the final output to the user.
                             ageOutputTextView.text = floor( age.toDouble() ).toInt().toString()
@@ -271,8 +262,8 @@ class MainActivity : AppCompatActivity() {
                         progressDialog.dismiss()
                         val dialog = AlertDialog.Builder( this ).apply {
                             title = "No Faces Found"
-                            setMessage( "Không có khuôn mặt nào trong hình. " +
-                                    "Vui lòng thử lại với ảnh khác" )
+                            setMessage( "Không tìm thấy khuôn mặt nào " +
+                                    "Xin chụp lại ảnh khác" )
                             setPositiveButton( "OK") { dialog, which ->
                                 dialog.dismiss()
                             }
@@ -316,7 +307,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     // Dispatch an Intent which opens the camera application for the user.
-    //https://developer.android.com/training/camera/photobasics#TaskPath
+    // The code is from -> https://developer.android.com/training/camera/photobasics#TaskPath
     private fun dispatchTakePictureIntent() {
         val takePictureIntent = Intent( MediaStore.ACTION_IMAGE_CAPTURE )
         if ( takePictureIntent.resolveActivity( packageManager ) != null ) {
