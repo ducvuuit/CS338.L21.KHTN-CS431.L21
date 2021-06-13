@@ -31,13 +31,12 @@ import kotlin.math.floor
 
 class MainActivity : AppCompatActivity() {
 
-    // Initialize the MLKit FaceDetector
+    // Khởi tạo API MLKit FaceDetector
     private val realTimeOpts = FaceDetectorOptions.Builder()
             .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_FAST)
             .build()
     private val firebaseFaceDetector = FaceDetection.getClient(realTimeOpts)
 
-    // UI elements
     private lateinit var sampleImageView : ImageView
     private lateinit var infoTextView : TextView
     private lateinit var ageOutputTextView : TextView
@@ -45,34 +44,28 @@ class MainActivity : AppCompatActivity() {
     private lateinit var inferenceSpeedTextView : TextView
     private lateinit var resultsLayout : ConstraintLayout
     private lateinit var progressDialog : ProgressDialog
-    // CoroutineScope in which we'll run our coroutines.
     private val coroutineScope = CoroutineScope( Dispatchers.Main )
 
-    // For reading the full-sized picture
     private val REQUEST_IMAGE_CAPTURE = 101
     private val REQUEST_IMAGE_SELECT = 102
     private lateinit var currentPhotoPath : String
 
-    // TFLite interpreters for both the models
+    // mô hình suy luận TFLite
     lateinit var ageModelInterpreter: Interpreter
     lateinit var genderModelInterpreter: Interpreter
     private lateinit var ageEstimationModel: AgeEstimationModel
     private lateinit var genderClassificationModel: GenderClassificationModel
-    // Boolean values to check for NNAPI and Gpu Delegates
-    private var useNNApi : Boolean = false
-    private var useGpu : Boolean = false
     private val compatList = CompatibilityList()
-    // Model names, as shown in the spinner.
+    // Tên model show trên app
     private val modelNames = arrayOf(
         "Age/Gender Detection Lite Model ( Quantized )",
         "Age/Gender Detection Lite Model ( Non-quantized )",
     )
-    // Filepaths of the models ( in the assets folder ) corresponding to the models in `modelNames`.
+    // Đường dẫn model
     private val modelFilenames = arrayOf(
         arrayOf("model_lite_age_q.tflite", "model_lite_gender_q.tflite"),
         arrayOf("model_lite_age_nonq.tflite", "model_lite_gender_nonq.tflite"),
     )
-    // Default model filename
     private var modelFilename = arrayOf( "model_age_q.tflite", "model_gender_q.tflite" )
 
     private val shift = 5
@@ -81,7 +74,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Initialize the UI elements
         sampleImageView = findViewById(R.id.sample_input_imageview)
         infoTextView = findViewById( R.id.info_textView )
         ageOutputTextView = findViewById( R.id.age_output_textView )
@@ -89,7 +81,6 @@ class MainActivity : AppCompatActivity() {
         resultsLayout = findViewById( R.id.results_layout )
         inferenceSpeedTextView = findViewById( R.id.inference_speed_textView )
 
-        // A ProgressDialog to notify the user that the images are being processed.
         progressDialog = ProgressDialog( this )
         progressDialog.setCancelable( false )
         progressDialog.setMessage( "Đang tìm kiếm khuôn mặt ...")
@@ -98,17 +89,17 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    // `onClick` method for R.id.button
+    // Hàm mở camera
     fun openCamera( v: View ) {
         dispatchTakePictureIntent()
     }
 
-    // `onClick` method for R.id.button2
+    // Hàm tải ảnh lên
     fun selectImage( v : View ) {
         dispatchSelectPictureIntent()
     }
 
-    // `onClick` method for R.id.reinitialize_button
+    // Hàm tùy chọn model
     fun reInitModel( v : View ) {
         showModelInitDialog()
     }
@@ -121,8 +112,8 @@ class MainActivity : AppCompatActivity() {
         val dialogView = layoutInflater.inflate(R.layout.model_init_dialog, null)
 
         // Initialize the UI elements in R.layout.model_init_dialog
-        val useNNApiCheckBox : CheckBox = dialogView.findViewById(R.id.useNNApi_checkbox)
-        val useGPUCheckBox : CheckBox = dialogView.findViewById(R.id.useGPU_checkbox)
+        //val useNNApiCheckBox : CheckBox = dialogView.findViewById(R.id.useNNApi_checkbox)
+        //val useGPUCheckBox : CheckBox = dialogView.findViewById(R.id.useGPU_checkbox)
         val initModelButton : Button = dialogView.findViewById(R.id.init_model_button)
         val selectModelSpinner : Spinner = dialogView.findViewById(R.id.select_model_spinner)
 
@@ -143,34 +134,16 @@ class MainActivity : AppCompatActivity() {
             override fun onNothingSelected(parent: AdapterView<*>) {
             }
         }
-        // Check for NNAPI and GPUDelegate compatibility.
-        if ( Build.VERSION.SDK_INT < Build.VERSION_CODES.P ) {
-            useNNApiCheckBox.isEnabled = false
-            useNNApiCheckBox.text = "Dùng NNAPI lỗi"
-            useNNApi = false
-        }
-        if ( !compatList.isDelegateSupportedOnThisDevice ){
-            useGPUCheckBox.isEnabled = false
-            useGPUCheckBox.text = "Không có GPU"
-            useGpu = false
-        }
-
-        useNNApiCheckBox.setOnCheckedChangeListener { buttonView, isChecked ->
-            useNNApi = isChecked
-        }
-        useGPUCheckBox.setOnCheckedChangeListener { buttonView, isChecked ->
-            useGpu = isChecked
-        }
+        // Hàm khời tạo model
         initModelButton.setOnClickListener {
             val options = Interpreter.Options().apply {
-                if ( useGpu ) {
+                if (false ) {
                     addDelegate(GpuDelegate( compatList.bestOptionsForThisDevice ) )
                 }
-                if ( useNNApi ) {
+                if (false ) {
                     addDelegate(NnApiDelegate())
                 }
             }
-            // Initialize the models in a coroutine.
             coroutineScope.launch {
                 initModels(options)
             }
@@ -190,7 +163,7 @@ class MainActivity : AppCompatActivity() {
             genderClassificationModel = GenderClassificationModel().apply {
                 interpreter = genderModelInterpreter
             }
-            // Notify the user once the models have been initialized.
+            // Thông báo sau khi khởi tạo model
             Toast.makeText( applicationContext , "Đã khởi tạo model xong!" , Toast.LENGTH_LONG ).show()
         }
     }
@@ -203,9 +176,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        // If the user opened the camera
+        // Nếu nhấn vào nút mở camera
         if ( resultCode == RESULT_OK && requestCode == REQUEST_IMAGE_CAPTURE ) {
-            // Get the full-sized Bitmap from `currentPhotoPath`.
+            // lấy full-sized Bitmap từ `currentPhotoPath`.
             var bitmap = BitmapFactory.decodeFile( currentPhotoPath )
             val exifInterface = ExifInterface( currentPhotoPath )
             bitmap =
@@ -216,16 +189,16 @@ class MainActivity : AppCompatActivity() {
                     else -> bitmap
                 }
             progressDialog.show()
-            // Pass the clicked picture to `detectFaces`.
+            // detect fce
             detectFaces( bitmap!! )
         }
-        // if the user selected an image from the gallery
+        // tải ảnh lên
         else if ( resultCode == RESULT_OK && requestCode == REQUEST_IMAGE_SELECT ) {
             val inputStream = contentResolver.openInputStream( data?.data!! )
             val bitmap = BitmapFactory.decodeStream( inputStream )
             inputStream?.close()
             progressDialog.show()
-            // Pass the clicked picture to `detectFaces`.
+            // detect face
             detectFaces( bitmap!! )
         }
     }
@@ -277,7 +250,7 @@ class MainActivity : AppCompatActivity() {
                 }
     }
 
-
+    // cắt bbox khuôn mặt từ hình ảnh
     private fun cropToBBox(image: Bitmap, bbox: Rect) : Bitmap {
         return Bitmap.createBitmap(
             image,
@@ -327,7 +300,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-
 
     private fun rotateBitmap(original: Bitmap, degrees: Float): Bitmap? {
         val matrix = Matrix()
