@@ -3,14 +3,14 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="match_parent">
 
     <Spinner
         android:id="@+id/select_model_spinner"
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="32dp"
         android:layout_marginEnd="16dp"
         android:spinnerMode="dialog"
         app:layout_constraintEnd_toEndOf="parent"
@@ -18,21 +18,13 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView" />
 
-    <CheckBox
-        android:id="@+id/useNNApi_checkbox"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="4dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        tools:layout_editor_absoluteY="219dp" />
-
     <Button
         android:id="@+id/init_model_button"
         style="@style/AppButtonStyle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="160dp"
-        android:layout_marginBottom="32dp"
+        android:layout_marginBottom="464dp"
         android:text="Khởi tạo"
         app:iconTint="@color/app_secondary_color"
         app:layout_constraintBottom_toBottomOf="parent"
